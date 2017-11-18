@@ -29,6 +29,7 @@
                                        [cljsjs/react-dom-server "16.0.0-0"]]}
 
              :dev {:dependencies [[figwheel "0.5.14"]
+                                  ;; FIXME: New version fixes array access, figwheel still uses old version
                                   [org.clojure/core.async "0.3.465"]
                                   [doo "0.1.8"]]
                    :source-paths ["demo" "examples/todomvc/src" "examples/simple/src" "examples/geometry/src"]
