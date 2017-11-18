@@ -989,7 +989,7 @@
                                                   [:div "Something went wrong."]
                                                   comp))}))
           comp1 (fn comp1 []
-                  (goog.object/get nil "foo")
+                  (js* "null.foo")
                   [:div "foo"])]
       (debug/track-warnings
         (wrap-capture-window-error
