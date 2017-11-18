@@ -29,6 +29,7 @@
                                        [cljsjs/react-dom-server "16.0.0-0"]]}
 
              :dev {:dependencies [[figwheel "0.5.14"]
+                                  [org.clojure/core.async "0.3.465"]
                                   [doo "0.1.8"]]
                    :source-paths ["demo" "examples/todomvc/src" "examples/simple/src" "examples/geometry/src"]
                    :resource-paths ["site" "target/cljsbuild/client"]}}
@@ -53,7 +54,8 @@
                 :output-to "target/cljsbuild/client/public/js/main.js"
                 :asset-path "js/out"
                 ;; add process.env.node_env preload
-                :process-shim true}}
+                :process-shim true
+                :checked-arrays :warn}}
 
     :test
     {:source-paths ["src" "test"]

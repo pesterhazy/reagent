@@ -5,7 +5,6 @@
             [reagent.core :as r]
             [reagent.dom.server :as server]
             [reagent.debug :refer-macros [dbg log dev?]]
-            [reagent.interop :as i :refer-macros [$ $!]]
             [sitetools.core :as tools]))
 
 
@@ -46,26 +45,27 @@
                                :page-conf {:page-path page-path}
                                :body-html bhtml)))))
 
+;; FIXME: require normally
 (defn fs [] (js/require "fs"))
 (defn path [] (js/require "path"))
 
 (defn mkdirs [f]
   (doseq [d (reductions #(str %1 "/" %2)
-                        (-> ($ (path) normalize f)
+                        (-> (.normalize (path) f)
                             (string/split #"/")))]
-    (when-not ($ (fs) existsSync d)
-      ($ (fs) mkdirSync d))))
+    (when-not (.existsSync (fs) d)
+      (.mkdirSync (fs) d))))
 
 (defn write-file [f content]
   (log "Write" f)
-  (mkdirs ($ (path) dirname f))
-  ($ (fs) writeFileSync f content))
+  (mkdirs (.dirname (path) f))
+  (.writeFileSync (fs) f content))
 
 (defn path-join [& paths]
-  (apply ($ (path) :join) paths))
+  (apply (.join (path)) paths))
 
 (defn write-resources [dir {:keys [css-file css-infiles]}]
   (write-file (path-join dir css-file)
               (->> css-infiles
-                   (map #($ (fs) readFileSync %))
+                   (map #(.readFileSync (fs) %))
                    (string/join "\n"))))

@@ -1,7 +1,6 @@
 (ns reagenttest.runtests
   (:require [reagenttest.testreagent]
             [reagenttest.testcursor]
-            [reagenttest.testinterop]
             [reagenttest.testratom]
             [reagenttest.testratomasync]
             [reagenttest.testtrack]
@@ -59,7 +58,6 @@
 
 (doo-tests 'reagenttest.testreagent
            'reagenttest.testcursor
-           'reagenttest.testinterop
            'reagenttest.testratom
            'reagenttest.testratomasync
            'reagenttest.testtrack

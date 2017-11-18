@@ -4,7 +4,6 @@
             [create-react-class :as create-react-class]
             [reagent.ratom :as rv :refer-macros [reaction]]
             [reagent.debug :as debug :refer-macros [dbg println log dev?]]
-            [reagent.interop :refer-macros [$ $!]]
             [reagent.core :as r]
             [reagent.dom.server :as server]
             [reagent.impl.util :as util]
@@ -448,8 +447,8 @@
                    (this-as
                      this
                      (r/create-element
-                       "div" #js{:className ($ this :props.className)}
-                       ($ this :props.children))))}))
+                       "div" #js{:className (.. this -props -className)}
+                       (.. this -props -children))))}))
 
 (deftest test-adapt-class
   (let [d1 (r/adapt-react-class ndiv)
@@ -990,7 +989,7 @@
                                                   [:div "Something went wrong."]
                                                   comp))}))
           comp1 (fn comp1 []
-                  ($ nil :foo)
+                  (goog.object/get nil "foo")
                   [:div "foo"])]
       (debug/track-warnings
         (wrap-capture-window-error
@@ -1036,7 +1035,7 @@
                (let [old @spy]
                  (is (nil? (r/after-render
                             (fn []
-                              (is (= "DIV" ($ @node :tagName)))
+                              (is (= "DIV" (.-tagName @node)))
                               (swap! spy inc)))))
                  (is (= old @spy))
                  (is (= @exp @val))

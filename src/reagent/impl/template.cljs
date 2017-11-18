@@ -6,9 +6,9 @@
             [reagent.impl.component :as comp]
             [reagent.impl.batching :as batch]
             [reagent.ratom :as ratom]
-            [reagent.interop :refer-macros [$ $!]]
             [reagent.debug :refer-macros [dbg prn println log dev?
-                                          warn warn-unless]]))
+                                          warn warn-unless]]
+            [goog.object :as gobj]))
 
 ;; From Weavejester's Hiccup, via pump:
 (def ^{:doc "Regular expression that parses a CSS-style id and class
@@ -42,14 +42,15 @@
 
 (defn cache-get [o k]
   (when ^boolean (.hasOwnProperty o k)
-    (aget o k)))
+    (gobj/get o k)))
 
 (defn cached-prop-name [k]
   (if (named? k)
     (if-some [k' (cache-get prop-name-cache (name k))]
       k'
-      (aset prop-name-cache (name k)
-            (util/dash-to-camel k)))
+      (let [v (util/dash-to-camel k)]
+        (gobj/set prop-name-cache (name k))
+        v))
     k))
 
 (defn ^boolean js-val? [x]
@@ -59,8 +60,7 @@
 
 (defn kv-conv [o k v]
   (doto o
-    (aset (cached-prop-name k)
-          (convert-prop-value v))))
+    (gobj/set (cached-prop-name k) (convert-prop-value v))))
 
 (defn convert-prop-value [x]
   (cond (js-val? x) x
@@ -72,19 +72,19 @@
         :else (clj->js x)))
 
 (defn oset [o k v]
-  (doto (if (nil? o) #js{} o)
-    (aset k v)))
+  (doto (if (nil? o) #js {} o)
+    (gobj/set k v)))
 
 (defn oget [o k]
-  (if (nil? o) nil (aget o k)))
+  (if (nil? o) nil (gobj/get o k)))
 
 (defn set-id-class [p id-class]
-  (let [id ($ id-class :id)
+  (let [id (.-id id-class)
         p (if (and (some? id)
                    (nil? (oget p "id")))
             (oset p "id" id)
             p)]
-    (if-some [class ($ id-class :className)]
+    (if-some [class (.-className id-class)]
       (let [old (oget p "className")]
         (oset p "className" (if (nil? old)
                               class
@@ -124,17 +124,17 @@
 
 (defn input-node-set-value
   [node rendered-value dom-value component {:keys [on-write]}]
-  (if-not (and (identical? node ($ js/document :activeElement))
-            (has-selection-api? ($ node :type))
+  (if-not (and (identical? node (.-activeElement js/document))
+            (has-selection-api? (.-type node))
             (string? rendered-value)
             (string? dom-value))
     ;; just set the value, no need to worry about a cursor
     (do
-      ($! component :cljsDOMValue rendered-value)
-      ($! node :value rendered-value)
+      (set! (.-cljsDOMValue component) rendered-value)
+      (set! (.-value node) rendered-value)
       (when (fn? on-write)
         (on-write rendered-value)))
-    
+
     ;; Setting "value" (below) moves the cursor position to the
     ;; end which gives the user a jarring experience.
     ;;
@@ -156,39 +156,39 @@
     ;; So this is just a warning. The code below is simple
     ;; enough, but if you are tempted to change it, be aware of
     ;; all the scenarios you have handle.
-    (let [node-value ($ node :value)]
+    (let [node-value (.-value node)]
       (if (not= node-value dom-value)
         ;; IE has not notified us of the change yet, so check again later
         (batch/do-after-render #(input-component-set-value component))
         (let [existing-offset-from-end (- (count node-value)
-                                         ($ node :selectionStart))
+                                         (.-selectionStart node))
               new-cursor-offset        (- (count rendered-value)
                                          existing-offset-from-end)]
-          ($! component :cljsDOMValue rendered-value)
-          ($! node :value rendered-value)
+          (set! (.-cljsDOMValue component) rendered-value)
+          (set! (.-value node) rendered-value)
           (when (fn? on-write)
             (on-write rendered-value))
-          ($! node :selectionStart new-cursor-offset)
-          ($! node :selectionEnd new-cursor-offset))))))
+          (set! (.-selectionStart node) new-cursor-offset)
+          (set! (.-selectionEnd node) new-cursor-offset))))))
 
 (defn input-component-set-value [this]
-  (when ($ this :cljsInputLive)
-    ($! this :cljsInputDirty false)
-    (let [rendered-value ($ this :cljsRenderedValue)
-          dom-value ($ this :cljsDOMValue)
+  (when (.-cljsInputLive this)
+    (set! (.-cljsInputDirty this) false)
+    (let [rendered-value (.-cljsRenderedValue this)
+          dom-value (.-cljsDOMValue this)
           node (find-dom-node this) ;; Default to the root node within this component
-          synthetic-on-update ($ this :cljsSyntheticOnUpdate)]
+          synthetic-on-update (.-cljsSyntheticOnUpdate this)]
       (when (not= rendered-value dom-value)
         (if (fn? synthetic-on-update)
           (synthetic-on-update input-node-set-value node rendered-value dom-value this)
           (input-node-set-value node rendered-value dom-value this {}))))))
 
 (defn input-handle-change [this on-change e]
-  ($! this :cljsDOMValue (-> e .-target .-value))
+  (set! (.-cljsDOMValue this) (-> e .-target .-value))
   ;; Make sure the input is re-rendered, in case on-change
   ;; wants to keep the value unchanged
-  (when-not ($ this :cljsInputDirty)
-    ($! this :cljsInputDirty true)
+  (when-not (.-cljsInputDirty this)
+    (set! (.-cljsInputDirty this) true)
     (batch/do-after-render #(input-component-set-value this)))
   (on-change e))
 
@@ -203,27 +203,26 @@
        "reagent.dom needs to be loaded for controlled input to work")
      (when synthetic-on-update
        ;; Pass along any synthetic input setter given
-       ($! this :cljsSyntheticOnUpdate synthetic-on-update))
-     (let [v ($ jsprops :value)
+       (set! (.-cljsSyntheticOnUpdate this) synthetic-on-update))
+     (let [v (.-value jsprops)
            value (if (nil? v) "" v)
-           on-change ($ jsprops :onChange)
+           on-change (.-onChange jsprops)
            on-change (if synthetic-on-change
                        (partial synthetic-on-change on-change)
                        on-change)]
-       (when-not ($ this :cljsInputLive)
+       (when-not (.-cljsInputLive this)
          ;; set initial value
-         ($! this :cljsInputLive true)
-         ($! this :cljsDOMValue value))
-       ($! this :cljsRenderedValue value)
+         (set! (.-cljsInputLive this) true)
+         (set! (.-cljsDOMValue this) value))
+       (set! (.-cljsRenderedValue this) value)
        (js-delete jsprops "value")
-       (doto jsprops
-         ($! :defaultValue value)
-         ($! :onChange #(input-handle-change this on-change %))))))
+       (set! (.-defaultValue jsprops) value)
+       (set! (.-onChange jsprops) #(input-handle-change this on-change %)))))
   ([this jsprops]
    (input-render-setup this jsprops {})))
 
 (defn input-unmount [this]
-  ($! this :cljsInputLive nil))
+  (set! (.-cljsInputLive this) nil))
 
 (defn ^boolean input-component? [x]
   (case x
@@ -301,9 +300,9 @@
 
 (defn reag-element [tag v]
   (let [c (comp/as-class tag)
-        jsprops #js{:argv v}]
+        jsprops #js {:argv v}]
     (when-some [key (key-from-vec v)]
-      ($! jsprops :key key))
+      (set! (.-key jsprops) key))
     (react/createElement c jsprops)))
 
 (defn adapt-react-class
@@ -313,29 +312,23 @@
      (when synthetic-input
        (assert (fn? on-update))
        (assert (fn? on-change)))
-     (let [wrapped (doto (->NativeWrapper)
-                     ($! :name c)
-                     ($! :id nil)
-                     ($! :class nil))
-           wrapped (if synthetic-input
-                     (doto wrapped
-                       ($! :syntheticInput true))
-                     wrapped)
-           wrapped (if synthetic-input
-                     (doto wrapped
-                       ($! :syntheticOnChange on-change))
-                     wrapped)
-           wrapped (if synthetic-input
-                     ;; This is a synthetic input component, i.e. it has a complex
-                     ;; nesting of elements such that the root node is not necessarily
-                     ;; the <input> tag we need to control, and/or it needs to execute
-                     ;; custom code when updated values are written so we provide an affordance
-                     ;; to configure a setter fn that can choose a different DOM node
-                     ;; than the root node if it wants, and can supply a function hooked
-                     ;; to value updates so it can maintain its own component state as needed.
-                     (doto wrapped
-                       ($! :syntheticOnUpdate on-update))
-                     wrapped)]
+     (let [wrapped (->NativeWrapper)
+           _ (set! (.-name wrapped) c)
+           _ (set! (.-id wrapped) nil)
+           _ (set! (.-class wrapped) nil)
+           _ (if synthetic-input
+               (set! (.-syntheticInput wrapped) true))
+           _ (if synthetic-input
+               (set! (.-syntheticOnChange wrapped) on-change))
+           ;; This is a synthetic input component, i.e. it has a complex
+           ;; nesting of elements such that the root node is not necessarily
+           ;; the <input> tag we need to control, and/or it needs to execute
+           ;; custom code when updated values are written so we provide an affordance
+           ;; to configure a setter fn that can choose a different DOM node
+           ;; than the root node if it wants, and can supply a function hooked
+           ;; to value updates so it can maintain its own component state as needed.
+           _ (if synthetic-input
+               (set! (.-syntheticOnUpdate wrapped) on-update))]
        wrapped)))
   ([c]
    (adapt-react-class c {})))
@@ -345,13 +338,15 @@
 (defn cached-parse [x]
   (if-some [s (cache-get tag-name-cache x)]
     s
-    (aset tag-name-cache x (parse-tag x))))
+    (let [v  (parse-tag x)]
+      (gobj/set tag-name-cache x v)
+      v)))
 
 (declare as-element)
 
 (defn native-element [parsed argv first]
-  (let [comp ($ parsed :name)
-        synthetic-input ($ parsed :syntheticInput)]
+  (let [comp (.-name parsed)
+        synthetic-input (.-syntheticInput parsed)]
     (let [props (nth argv first nil)
           hasprops (or (nil? props) (map? props))
           jsprops (convert-props (if hasprops props) parsed)
@@ -360,8 +355,8 @@
         (-> (if synthetic-input
               ;; If we are dealing with a synthetic input, use the synthetic-input-spec form:
               [(reagent-synthetic-input)
-               ($ parsed :syntheticOnUpdate)
-               ($ parsed :syntheticOnChange)
+               (.-syntheticOnUpdate parsed)
+               (.-syntheticOnChange parsed)
                argv
                comp
                jsprops
@@ -440,7 +435,7 @@
       (let [val (aget a i)]
         (when (and (vector? val)
                    (nil? (key-from-vec val)))
-          ($! o :no-key true))
+          (set! (.-no-key o) true))
         (aset a i (as-element val))))
     a))
 
@@ -450,7 +445,7 @@
     (when derefed
       (warn (hiccup-err x "Reactive deref not supported in lazy seq, "
                         "it should be wrapped in doall")))
-    (when ($ ctx :no-key)
+    (when (.-no-key ctx)
       (warn (hiccup-err x "Every element in a seq should have a unique :key")))
     res))
 
