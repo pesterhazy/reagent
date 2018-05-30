@@ -1,24 +1,21 @@
-## Tutorials
+Reagent is simple [ClojureScript](http://github.com/clojure/clojurescript) interface to [React](http://facebook.github.io/react/). It provides a way to write efficient React components using nothing but plain ClojureScript functions.
 
-1. [Using Hiccup to Describe HTML](UsingHiccupToDescribeHTML.md)
-2. [Creating Reagent Components](CreatingReagentComponents.md)
-3. [Using [square brackets] instead of (parentheses)](UsingSquareBracketsInsteadOfParens.md)
-4. [When do components update?](WhenDoComponentsUpdate.md)
-5. [[WIP] Managing State: atoms, cursors, Reactions, and tracking](ManagingState.md)
-6. [Batching and Timing: How Reagent Renders Changes to Application State](BatchingAndTiming.md)
-7. [Interop with React](InteropWithReact.md)
+New users are encouraged to start form the official Reagent User Guide.
 
-Also:
-  * [purelyfunctional.tv ](https://purelyfunctional.tv/guide/reagent/) - an excellent, written tutorial
-  * [Reagent Deep Dive Series by Timothy Pratley](http://timothypratley.blogspot.com.au/p/p.html) - a four part series
-  * [Reagent Mysteries series by Paulus Esterhazy](https://presumably.de/) - a four part series
-  * [Props, Children & Component Lifecycle](https://www.martinklepsch.org/posts/props-children-and-component-lifecycle-in-reagent.html) by Martin Klepsch
-  * [Using Stateful JS Components - like D3](https://github.com/Day8/re-frame/blob/masterUsing-Stateful-JS-Components.md)  (external link)
+## Reagent User Guide
 
-## Commercial Videos Series
+- [Using Hiccup to Describe HTML](UsingHiccupToDescribeHTML.md)
+- [Creating Reagent Components](CreatingReagentComponents.md)
+- [Using [square brackets] instead of (parentheses)](UsingSquareBracketsInsteadOfParens.md)
+- [When do components update?](WhenDoComponentsUpdate.md)
+- [Managing State: atoms, cursors, Reactions, and tracking](ManagingState.md)
+- [Batching and Timing: How Reagent Renders Changes to Application State](BatchingAndTiming.md)
+- [Interop with React](InteropWithReact.md)
 
-  * [purelyfunctional.tv ](https://purelyfunctional.tv/guide/reagent/)
-  * [Lambda Island Videos](https://lambdaisland.com/collections/react-reagent-re-frame)
+## Reagent User Guide Appendix
+
+- [0.8-upgrade](Upgrading to Reagent 0.8)
+- [development](Developing Reagent)
   
 ## Frequently Asked Questions
 
@@ -31,14 +28,21 @@ Also:
 5. [How do I force Component re-creation?](https://groups.google.com/forum/#!topic/reagent-project/tNY4gzk7TUY) (external link)
 6. [How do I access "props" in lifecycle methods?](http://nils-blum-oeste.net/clojurescripts-reagent-using-props-in-lifecycle-hooks/) (external link)
 
+## Contributing FAQs
 
-### Want To Add An FAQ?
+Many thanks! We'd like that:
 
-Many Thanks!! We'd like that:
-1. As a base, just use the structure from one of the existing FAQs files
-2. Give us a PR which includes your new file AND a change to this README so your entry is listed.
+1. As a base, just use the structure from one of the existing FAQ files
+2. Open a PR which includes your new file as well as a change to this README.md so your entry is listed.
 
-#### Misc Docs
+## Further Reading
 
- - [0.8-upgrade](0.8-upgrade.md)
- - [development](development.md)
+  * [purelyfunctional.tv ](https://purelyfunctional.tv/guide/reagent/) - an excellent, written tutorial
+  * [Reagent Deep Dive Series by Timothy Pratley](http://timothypratley.blogspot.com.au/p/p.html) - a four part series
+  * [Reagent Mysteries series by Paulus Esterhazy](https://presumably.de/) - a four part series
+  * [Props, Children & Component Lifecycle](https://www.martinklepsch.org/posts/props-children-and-component-lifecycle-in-reagent.html) by Martin Klepsch
+  * [Using Stateful JS Components - like D3](https://github.com/Day8/re-frame/blob/masterUsing-Stateful-JS-Components.md)  (external link)
+
+  * [purelyfunctional.tv ](https://purelyfunctional.tv/guide/reagent/) (commercial)
+  * [Lambda Island Videos](https://lambdaisland.com/collections/react-reagent-re-frame) (commercial)
+
